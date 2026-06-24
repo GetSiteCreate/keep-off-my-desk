@@ -489,8 +489,7 @@ document.addEventListener('keydown', startIntro);
             ASSETS.prisoners.forEach(url => {
                 gltfLoader.load(url, (gltf) => {
                     const obj = gltf.scene;
-                    obj.scale.set(0.035, 0.035, 0.035); // Примечание: для GLB масштаб часто равен 1.0, проверь в игре
-                    obj.traverse(c => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; }});
+                    obj.traverse(c => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; c.frustumCulled = false; }});
                     ASSET_CACHE.models[url] = obj;
                     updateProgress();
                 }, undefined, updateProgress);
@@ -2215,6 +2214,7 @@ document.addEventListener('keydown', startIntro);
             
             if (ASSET_CACHE.models[randomModel]) {
                 const object = ASSET_CACHE.models[randomModel].clone();
+                object.traverse(c => { if (c.isMesh) { c.visible = true; c.frustumCulled = false; }});
                 prisonerGroup.add(object);
                 finalizePrisonerSetup(prisonerGroup);
             } else {
