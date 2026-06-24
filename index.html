@@ -249,7 +249,7 @@
             addMoneySound: 'addmoney.mp3', // Звук прибавления денег
             stampSound: 'stamp.mp3', // Звук штампа текста
             countSound: 'count.mp3', // Звук начисления денег/волн
-            prisoners: ['prisoner_1.fbx', 'prisoner_2.fbx', 'prisoner_3.fbx', 'prisoner_4.fbx', 'prisoner_5.fbx'],
+            prisoners: ['prisoner_1.glb', 'prisoner_2.glb', 'prisoner_3.glb', 'prisoner_4.glb', 'prisoner_5.glb'],
             mugTexture: 'mug.png', // или .jpg
             hitSound: 'hit.mp3',
             drinkSound: 'drink.mp3',
@@ -480,11 +480,15 @@
             gltfLoader.load(ASSETS.hand, (gltf) => { ASSET_CACHE.models.hand = gltf.scene; updateProgress(); }, undefined, updateProgress);
             
             const fbxLoader = new FBXLoader();
-            ASSETS.prisoners.forEach(url => {
-                fbxLoader.load(url, (obj) => {
-                    obj.scale.set(0.035, 0.035, 0.035);
-                    obj.traverse(c => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; }});
-                    ASSET_CACHE.models[url] = obj;
+ASSETS.prisoners.forEach(url => {
+gltfLoader.load(url, (gltf) => {
+const obj = gltf.scene;
+obj.scale.set(0.035, 0.035, 0.035); // Примечание: для GLB масштаб часто равен 1.0, проверь в игре
+obj.traverse(c => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; }});
+ASSET_CACHE.models[url] = obj;
+updateProgress();
+}, undefined, updateProgress);
+});     ASSET_CACHE.models[url] = obj;
                     updateProgress();
                 }, undefined, updateProgress);
             });
