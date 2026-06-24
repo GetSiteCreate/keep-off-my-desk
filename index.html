@@ -96,7 +96,7 @@
 <body>
 
     <div id="pre-start-screen" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: flex; justify-content: center; align-items: center; color: #fff; z-index: 4000; cursor: pointer;">
-        <h1 style="font-size: 28px; letter-spacing: 5px; animation: pulseText 1.5s infinite; border: none;">НАЖМИТЕ ЛЮБУЮ КНОПКУ</h1>
+        <h1 style="font-size: 28px; letter-spacing: 5px; animation: pulseText 1.5s infinite; border: none;">НАЖМИТЕ НА ЭКРАН</h1>
     </div>
 
     <div id="intro-container" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 3000; display: none; transition: opacity 1s ease;">
@@ -430,8 +430,14 @@
                 video.play().catch(finishIntro);
             };
             
-            document.addEventListener('click', startIntro);
-            document.addEventListener('keydown', startIntro);
+const preStartScreen = document.getElementById('pre-start-screen');
+if (preStartScreen) {
+    preStartScreen.addEventListener('click', startIntro);
+    preStartScreen.addEventListener('keydown', startIntro);
+    preStartScreen.addEventListener('touchstart', startIntro);
+}
+document.addEventListener('click', startIntro);
+document.addEventListener('keydown', startIntro);
         }
 
         async function preloadAssets() {
@@ -480,15 +486,12 @@
             gltfLoader.load(ASSETS.hand, (gltf) => { ASSET_CACHE.models.hand = gltf.scene; updateProgress(); }, undefined, updateProgress);
             
             const fbxLoader = new FBXLoader();
-ASSETS.prisoners.forEach(url => {
-gltfLoader.load(url, (gltf) => {
-const obj = gltf.scene;
-obj.scale.set(0.035, 0.035, 0.035); // Примечание: для GLB масштаб часто равен 1.0, проверь в игре
-obj.traverse(c => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; }});
-ASSET_CACHE.models[url] = obj;
-updateProgress();
-}, undefined, updateProgress);
-});     ASSET_CACHE.models[url] = obj;
+            ASSETS.prisoners.forEach(url => {
+                gltfLoader.load(url, (gltf) => {
+                    const obj = gltf.scene;
+                    obj.scale.set(0.035, 0.035, 0.035); // Примечание: для GLB масштаб часто равен 1.0, проверь в игре
+                    obj.traverse(c => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; }});
+                    ASSET_CACHE.models[url] = obj;
                     updateProgress();
                 }, undefined, updateProgress);
             });
