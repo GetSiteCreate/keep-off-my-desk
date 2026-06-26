@@ -82,10 +82,6 @@
         #postal-container:hover { transform: translateY(-50%) scale(1.05); }
         #postal-gif { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
         .blood-splat-2d { display: none; width: 30px; height: 30px; background: #8a0303; border-radius: 50%; box-shadow: 25px 15px 0 -5px #8a0303, -20px -25px 0 -8px #8a0303, 35px -15px 0 -2px #8a0303, 15px 30px 0 -5px #8a0303, -30px 15px 0 -4px #8a0303, 0px 0px 20px 5px #600000 inset; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none; filter: blur(0.5px); opacity: 0.9; }
-        #scale-editor { position: fixed !important; top: 20px !important; right: 20px !important; transform: none !important; z-index: 99999 !important; display: flex !important; visibility: visible !important; opacity: 1 !important; background: rgba(0,0,0,0.95) !important; border: 3px solid #ffeb3b !important; border-radius: 12px !important; padding: 20px !important; color: white !important; pointer-events: auto !important; flex-direction: column !important; gap: 12px !important; min-width: 180px !important; box-shadow: 0 0 20px rgba(255,235,59,0.3) !important; }
-        #scale-editor input { width: 100%; cursor: pointer; }
-        #scale-editor #prisoner-scale-value { text-align: center; font-size: 24px; font-weight: bold; color: #4CAF50; }
-        #scale-editor button { padding: 10px; font-size: 14px; background: linear-gradient(90deg, #4CAF50, #388E3C); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: all 0.2s; }
     </style>
     <!-- Import Maps для загрузки Three.js и FBXLoader -->
     <script type="importmap">
@@ -235,14 +231,7 @@
                 </div>
             </div>
         </div>
-        <div id="scale-editor" style="position: fixed; top: 50%; right: 20px; transform: translateY(-50%); background: rgba(0,0,0,0.9); border: 3px solid #ffeb3b; border-radius: 12px; padding: 20px; color: white; pointer-events: auto; z-index: 9999; display: flex; flex-direction: column; gap: 12px; min-width: 180px; box-shadow: 0 0 20px rgba(255,235,59,0.3);">
-            <div style="font-size: 18px; font-weight: bold; text-align: center; color: #ffeb3b; text-shadow: 1px 1px 2px black;">Редактор масштаба</div>
-            <input type="range" id="prisoner-scale-slider" min="0.1" max="5.0" step="0.1" value="1.0" style="width: 100%; cursor: pointer;">
-            <div id="prisoner-scale-value" style="text-align: center; font-size: 24px; font-weight: bold; color: #4CAF50;">1.0x</div>
-            <button id="copy-scale-btn" style="padding: 10px; font-size: 14px; background: linear-gradient(90deg, #4CAF50, #388E3C); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: all 0.2s;">Копировать масштаб</button>
-        </div>
-
-    <script type="module">
+    <script type='module'>
         import * as THREE from 'three';
         import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -285,7 +274,7 @@
         };
 
         // === ПАРАМЕТРЫ ИГРЫ ===
-        window.PRISONER_EDITOR_SCALE = 1.0;
+        window.PRISONER_EDITOR_SCALE = 3.4;
         const GAME = {
             money: 0,
             displayMoney: 0, // Переменная для анимации счетчика
@@ -390,44 +379,6 @@
             startQuat: new THREE.Quaternion()
         };
 
-        function initScaleEditor() {
-            let editor = document.getElementById('scale-editor');
-            if (!editor) {
-                editor = document.createElement('div');
-                editor.id = 'scale-editor';
-                editor.innerHTML = '<div style="font-size: 18px; font-weight: bold; text-align: center; color: #ffeb3b; text-shadow: 1px 1px 2px black;">Редактор масштаба</div><input type="range" id="prisoner-scale-slider" min="0.1" max="5.0" step="0.1" value="1.0"><div id="prisoner-scale-value" style="text-align: center; font-size: 24px; font-weight: bold; color: #4CAF50;">1.0x</div><button id="copy-scale-btn">Копировать масштаб</button>';
-                document.body.appendChild(editor);
-            }
-            const scaleSlider = document.getElementById('prisoner-scale-slider');
-            const scaleValue = document.getElementById('prisoner-scale-value');
-            const copyScaleBtn = document.getElementById('copy-scale-btn');
-            if (scaleSlider) {
-                scaleSlider.addEventListener('input', (e) => {
-                    window.PRISONER_EDITOR_SCALE = parseFloat(e.target.value);
-                    if (scaleValue) scaleValue.innerText = window.PRISONER_EDITOR_SCALE.toFixed(1) + 'x';
-                    prisoners.forEach(p => p.scale.setScalar(window.PRISONER_EDITOR_SCALE));
-                });
-            }
-            if (copyScaleBtn) {
-                copyScaleBtn.addEventListener('click', () => {
-                    const val = (window.PRISONER_EDITOR_SCALE !== undefined ? window.PRISONER_EDITOR_SCALE : 1.0).toFixed(1);
-                    navigator.clipboard.writeText(val).then(() => {
-                        copyScaleBtn.innerText = 'Скопировано!';
-                        setTimeout(() => copyScaleBtn.innerText = 'Копировать масштаб', 1500);
-                    }).catch(() => {
-                        const ta = document.createElement('textarea');
-                        ta.value = val;
-                        document.body.appendChild(ta);
-                        ta.select();
-                        document.execCommand('copy');
-                        document.body.removeChild(ta);
-                        copyScaleBtn.innerText = 'Скопировано!';
-                        setTimeout(() => copyScaleBtn.innerText = 'Копировать масштаб', 1500);
-                    });
-                });
-            }
-        }
-
         init();
 
         function init() {
@@ -488,7 +439,6 @@ if (preStartScreen) {
 document.addEventListener('click', startIntro);
 document.addEventListener('keydown', startIntro);
 
-            initScaleEditor();
         }
 
         async function preloadAssets() {
@@ -3189,8 +3139,9 @@ document.addEventListener('keydown', startIntro);
                         const p = ASSET_CACHE.models[randomModel] ? ASSET_CACHE.models[randomModel].clone() : new THREE.Group();
                         p.position.set(0.5, 0, -2.5); // Прямо перед камерой
                         // Фикс "стоит под углом": зэк смотрит на камеру только по горизонтали (по оси Y)
-                        p.lookAt(new THREE.Vector3(camera.position.x, p.position.y, camera.position.z));
-                        scene.add(p);
+                p.lookAt(new THREE.Vector3(camera.position.x, p.position.y, camera.position.z));
+                p.scale.setScalar(window.PRISONER_EDITOR_SCALE || 1.0);
+                scene.add(p);   scene.add(p);
                         c.jumpscarePrisoner = p;
                         playSoundUnprocessed(appearBuffer, 1.0);
                     }
