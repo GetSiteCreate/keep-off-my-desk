@@ -155,17 +155,17 @@
                 <button class="shop-buy-btn" id="buy-reward" data-cost="2000">Купить ($2000)</button>
             </div>
             <div class="shop-item">
-                <div class="shop-icon-container shop-3d-model" data-model="turret"></div>
+                <div class="shop-icon-container"><img src="shop_turret.png" onerror="this.style.display='none'"></div>
                 <div class="shop-item-info"><strong>Авто-Турель</strong><small>Отпугивает зэков (Макс 3)</small></div>
                 <button class="shop-buy-btn" id="buy-turret" data-cost="3000">Купить ($3000)</button>
             </div>
             <div class="shop-item">
-                <div class="shop-icon-container shop-3d-model" data-model="book"></div>
+                <div class="shop-icon-container"><img src="shop_book.png" onerror="this.style.display='none'"></div>
                 <div class="shop-item-info"><strong>Нигро Магия</strong><small>Стреляет яйцами (ЛКМ), бросок (ПКМ)</small></div>
                 <button class="shop-buy-btn" id="buy-book" data-cost="5000">Купить ($5000)</button>
             </div>
             <div class="shop-item">
-                <div class="shop-icon-container shop-3d-model" data-model="box"></div>
+                <div class="shop-icon-container"><img src="shop_box.png" onerror="this.style.display='none'"></div>
                 <div class="shop-item-info"><strong>Total Security</strong><small>Взрывная коробка с шариками-сюрпризами</small></div>
                 <button class="shop-buy-btn" id="buy-box" data-cost="3600">Купить ($3600)</button>
             </div>
@@ -2103,43 +2103,55 @@ document.addEventListener('keydown', startIntro);
             }
             handGroup.userData.lightnings = lightnings;
             camera.add(handGroup);
-            scene.add(camera);
 
+            let useProcedural = false;
             if (ASSET_CACHE.models.hand) {
-                const object = ASSET_CACHE.models.hand;
+                const object = ASSET_CACHE.models.hand.clone();
                 
-                const box = new THREE.Box3().setFromObject(object);
-                const size = box.getSize(new THREE.Vector3());
-                const center = box.getCenter(new THREE.Vector3());
+                let hasMesh = false;
+                object.traverse(c => { if (c.isMesh) hasMesh = true; });
                 
-                const maxDim = Math.max(size.x, size.y, size.z) || 1;
-                const targetScale = 1.4 / maxDim;
-                object.scale.set(targetScale, targetScale, targetScale);
-                
-                object.position.set(-center.x * targetScale, -center.y * targetScale, -center.z * targetScale);
-                object.scale.x = targetScale * -1;
+                if (!hasMesh) {
+                    useProcedural = true;
+                } else {
+                    const box = new THREE.Box3().setFromObject(object);
+                    const size = box.getSize(new THREE.Vector3());
+                    const center = box.getCenter(new THREE.Vector3());
+                    
+                    const maxDim = Math.max(size.x, size.y, size.z) || 1;
+                    const targetScale = 1.4 / maxDim;
+                    object.scale.set(targetScale, targetScale, targetScale);
+                    
+                    object.position.set(-center.x * targetScale, -center.y * targetScale, -center.z * targetScale);
+                    object.scale.x = targetScale * -1;
 
-                const pivot = new THREE.Group();
-                pivot.add(object);
+                    const pivot = new THREE.Group();
+                    pivot.add(object);
 
-                const rx = -46 * Math.PI / 180;
-                const ry = 107 * Math.PI / 180;
-                const rz = 180 * Math.PI / 180;
-                pivot.rotation.set(rx, ry, rz, 'YXZ');
-                
-                const FACTOR = 0.2;
-                const s = 1.28 * FACTOR;
-                pivot.scale.set(s, s, s);
+                    const rx = -46 * Math.PI / 180;
+                    const ry = 107 * Math.PI / 180;
+                    const rz = 180 * Math.PI / 180;
+                    pivot.rotation.set(rx, ry, rz, 'YXZ');
+                    
+                    const FACTOR = 0.2;
+                    const s = 1.28 * FACTOR;
+                    pivot.scale.set(s, s, s);
 
-                object.traverse((child) => {
-                    if (child.isMesh) { 
-                        child.castShadow = true; 
-                        child.receiveShadow = true; 
-                        if (child.material) child.material.side = THREE.DoubleSide;
-                    }
-                });
-                handGroup.add(pivot);
+                    object.traverse((child) => {
+                        if (child.isMesh) { 
+                            child.castShadow = true; 
+                            child.receiveShadow = true; 
+                            child.frustumCulled = false;
+                            if (child.material) child.material.side = THREE.DoubleSide;
+                        }
+                    });
+                    handGroup.add(pivot);
+                }
             } else {
+                useProcedural = true;
+            }
+            
+            if (useProcedural) {
                 buildProceduralHand();
             }
 
