@@ -1161,6 +1161,7 @@ document.addEventListener('keydown', startIntro);
             camera.rotation.order = 'YXZ';
             camera.rotation.y = yaw;
             camera.rotation.x = pitch;
+            scene.add(camera);
 
             // Настраиваем EffectComposer для белой обводки
             // Камера ДОЛЖНА быть создана до передачи её в RenderPass!
