@@ -11,23 +11,27 @@
         /* UI Styles */
         #ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: none; }
         .hud-panel {
-            background: rgba(0, 0, 0, 0.6);
-            border: 16px solid #555;
-            border-image: url('hud_frame.png') 40 stretch;
+            background-color: rgba(0, 0, 0, 0.6);
+            background-image: url('hud_frame.png');
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            border: none;
             border-radius: 0;
-            padding: 10px;
+            padding: 18px;
             color: white;
             text-shadow: 1px 1px 2px black;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.7));
             pointer-events: auto;
             box-sizing: border-box;
+            min-width: 120px;
+            min-height: 50px;
         }
         
-        #money-container { position: absolute; top: 20px; left: 20px; font-size: 24px; font-weight: bold; color: #4CAF50; }
+        #money-container { position: absolute; top: 20px; left: 10px; font-size: 24px; font-weight: bold; color: #4CAF50; }
         
-        #stamina-container { position: absolute; top: 20px; right: 20px; width: 250px; }
+        #stamina-container { position: absolute; top: 20px; right: 10px; width: 280px; }
         #stamina-text { font-size: 18px; margin-bottom: 5px; font-weight: bold; color: #fff; }
-        #stamina-bar-bg { width: 100%; height: 20px; background: #333; border-radius: 10px; border: 2px solid #222; overflow: hidden; }
+        #stamina-bar-bg { width: 90%; height: 20px; background: #333; border-radius: 10px; border: 2px solid #222; overflow: hidden; margin: 0 auto; }
         #stamina-bar { width: 100%; height: 100%; background: linear-gradient(90deg, #ff416c, #ff4b2b); transition: width 0.1s; }
         
         #crosshair { position: absolute; top: 50%; left: 50%; width: 6px; height: 6px; background: white; border-radius: 50%; transform: translate(-50%, -50%); opacity: 0.5; }
@@ -204,13 +208,13 @@
             <div id="stamina-text">Выносливость</div>
             <div id="stamina-bar-bg"><div id="stamina-bar"></div></div>
         </div>
-        <div id="desk-health-container" class="hud-panel" style="position: absolute; top: 20px; left: 50%; transform: translateX(-50%); width: 300px; text-align: center;">
+        <div id="desk-health-container" class="hud-panel" style="position: absolute; top: 20px; left: 50%; transform: translateX(-50%); width: 340px; text-align: center;">
             <div style="font-size: 18px; margin-bottom: 5px; font-weight: bold;">Прочность стола</div>
-            <div style="width: 100%; height: 20px; background: #333; border-radius: 10px; border: 2px solid #222; overflow: hidden;">
+            <div style="width: 90%; height: 20px; background: #333; border-radius: 10px; border: 2px solid #222; overflow: hidden; margin: 0 auto;">
                 <div id="desk-health-bar" style="width: 100%; height: 100%; background: linear-gradient(90deg, #4CAF50, #8BC34A); transition: width 0.1s, background-color 0.2s;"></div>
             </div>
         </div>
-        <div id="wave-container" class="hud-panel" style="position: absolute; top: 90px; left: 50%; transform: translateX(-50%); width: 150px; text-align: center;">
+        <div id="wave-container" class="hud-panel" style="position: absolute; top: 130px; left: 50%; transform: translateX(-50%); width: 150px; text-align: center;">
             <div style="font-size: 18px; font-weight: bold;">Волна: <span id="wave-number">1</span></div>
         </div>
         <div id="minigame-container" class="hud-panel" style="position: absolute; top: 90px; right: 20px; width: 250px; text-align: center; display: none;">
@@ -450,7 +454,7 @@ document.addEventListener('keydown', startIntro);
         }
 
         async function preloadAssets() {
-            const totalAssets = 26; // Точное количество файлов
+            const totalAssets = 30; // Динамический точный подсчет: 5 prisoners + 15 audio + 7 textures + 3 models
             let loaded = 0;
             
             const updateProgress = () => {
@@ -1749,6 +1753,15 @@ document.addEventListener('keydown', startIntro);
             rightWall.position.x = 12;
             roomGroup.add(rightWall);
 
+            // Заполняем всё пространство по бокам сплошной стеной, чтобы камеры не висели в воздухе
+            for (const side of [-1, 1]) {
+                const fillWall = new THREE.Mesh(new THREE.BoxGeometry(3.2, 4.6, 15.2), wallMat);
+                fillWall.position.set(side * 10.45, 2.3, -10.5);
+                fillWall.castShadow = true;
+                fillWall.receiveShadow = true;
+                roomGroup.add(fillWall);
+            }
+
             const windowFrame = new THREE.Mesh(new THREE.BoxGeometry(3.6, 2.4, 0.18), darkMetalMat);
             windowFrame.position.set(-6.5, 4.8, -23.75);
             windowFrame.castShadow = true;
@@ -2093,16 +2106,13 @@ document.addEventListener('keydown', startIntro);
 
         function loadHand() {
             handGroup = new THREE.Group();
-            // ТРЮК ПРОТИВ ПРОХОЖДЕНИЯ СКВОЗЬ СТОЛ:
-            // Уменьшаем масштаб позиций в 5 раз (0.2), чтобы рука рендерилась прямо перед линзой камеры.
+            handGroup.frustumCulled = false;
             const FACTOR = 0.2; 
-            // Z изменено с -1.41 на -0.9, чтобы придвинуть руку ближе к камере и спрятать срез рукава за экраном
             handGroup.userData.restPosition = new THREE.Vector3(0.55 * FACTOR, -0.34 * FACTOR, -0.9 * FACTOR);
             handGroup.userData.targetSway = new THREE.Vector2(0, 0);
             handGroup.userData.currentSway = new THREE.Vector2(0, 0);
             handGroup.position.copy(handGroup.userData.restPosition);
 
-            // --- Эффекты Мини-Крита (Красные молнии) ---
             const lightningMat = new THREE.LineBasicMaterial({ color: 0xff1111, linewidth: 2 });
             const lightnings = [];
             for (let i = 0; i < 4; i++) {
@@ -2116,103 +2126,109 @@ document.addEventListener('keydown', startIntro);
             handGroup.userData.lightnings = lightnings;
             camera.add(handGroup);
 
-            let useProcedural = false;
+            let useProcedural = true;
             if (ASSET_CACHE.models.hand) {
-                const object = ASSET_CACHE.models.hand.clone();
-                
-                let hasMesh = false;
-                object.traverse(c => { if (c.isMesh) hasMesh = true; });
-                
-                if (!hasMesh) {
+                try {
+                    const object = ASSET_CACHE.models.hand.clone();
+                    let hasMesh = false;
+                    object.traverse(c => { if (c.isMesh) hasMesh = true; });
+                    
+                    if (hasMesh) {
+                        useProcedural = false;
+                        const box = new THREE.Box3().setFromObject(object);
+                        const size = box.getSize(new THREE.Vector3());
+                        const center = box.getCenter(new THREE.Vector3());
+                        
+                        const maxDim = Math.max(size.x, size.y, size.z) || 1;
+                        const targetScale = 1.4 / maxDim;
+                        object.scale.set(targetScale, targetScale, targetScale);
+                        
+                        object.position.set(-center.x * targetScale, -center.y * targetScale, -center.z * targetScale);
+                        object.scale.x = targetScale * -1;
+
+                        const pivot = new THREE.Group();
+                        pivot.add(object);
+
+                        const rx = -46 * Math.PI / 180;
+                        const ry = 107 * Math.PI / 180;
+                        const rz = 180 * Math.PI / 180;
+                        pivot.rotation.set(rx, ry, rz, 'YXZ');
+                        
+                        const s = 1.28 * FACTOR;
+                        pivot.scale.set(s, s, s);
+
+                        object.traverse((child) => {
+                            if (child.isMesh) { 
+                                child.castShadow = true; 
+                                child.receiveShadow = true; 
+                                child.frustumCulled = false;
+                                if (child.material) child.material.side = THREE.DoubleSide;
+                            }
+                        });
+                        handGroup.add(pivot);
+                        handGroup.updateMatrixWorld(true);
+                    }
+                } catch (e) {
                     useProcedural = true;
-                } else {
-                    const box = new THREE.Box3().setFromObject(object);
-                    const size = box.getSize(new THREE.Vector3());
-                    const center = box.getCenter(new THREE.Vector3());
-                    
-                    const maxDim = Math.max(size.x, size.y, size.z) || 1;
-                    const targetScale = 1.4 / maxDim;
-                    object.scale.set(targetScale, targetScale, targetScale);
-                    
-                    object.position.set(-center.x * targetScale, -center.y * targetScale, -center.z * targetScale);
-                    object.scale.x = targetScale * -1;
-
-                    const pivot = new THREE.Group();
-                    pivot.add(object);
-
-                    const rx = -46 * Math.PI / 180;
-                    const ry = 107 * Math.PI / 180;
-                    const rz = 180 * Math.PI / 180;
-                    pivot.rotation.set(rx, ry, rz, 'YXZ');
-                    
-                    const FACTOR = 0.2;
-                    const s = 1.28 * FACTOR;
-                    pivot.scale.set(s, s, s);
-
-                    object.traverse((child) => {
-                        if (child.isMesh) { 
-                            child.castShadow = true; 
-                            child.receiveShadow = true; 
-                            child.frustumCulled = false;
-                            if (child.material) child.material.side = THREE.DoubleSide;
-                        }
-                    });
-                    handGroup.add(pivot);
                 }
-            } else {
-                useProcedural = true;
             }
             
             if (useProcedural) {
                 buildProceduralHand();
             }
 
-            // --- Эффект "резиновой" руки (тянущийся синий рукав) ---
-            // Делаем конус: у плеча шире (0.07), у запястья уже (0.03)
+            handGroup.visible = true;
+
             const stretchGeo = new THREE.CylinderGeometry(0.03, 0.07, 1, 16);
-            stretchGeo.rotateX(Math.PI / 2); // Направляем вдоль оси Z
-            stretchGeo.translate(0, 0, -0.5); // Смещаем так, чтобы Z=0 было основанием, а Z=-1 концом
-            const stretchMat = new THREE.MeshStandardMaterial({ color: 0x162c52, roughness: 0.8 }); // Темно-синий цвет
+            stretchGeo.rotateX(Math.PI / 2);
+            stretchGeo.translate(0, 0, -0.5);
+            const stretchMat = new THREE.MeshStandardMaterial({ color: 0x162c52, roughness: 0.8 });
             const stretchArm = new THREE.Mesh(stretchGeo, stretchMat);
             stretchArm.visible = false;
-            camera.add(stretchArm); // Прикрепляем к камере
+            camera.add(stretchArm);
             handGroup.userData.stretchArm = stretchArm;
         }
 
         function buildProceduralHand() {
-            handGroup.scale.set(0.2, 0.2, 0.2); // Учитываем фактор миниатюры для дефолтной руки
+            const pivot = new THREE.Group();
             const skinMat = new THREE.MeshStandardMaterial({ color: 0xffcc99, roughness: 0.4 });
             const suitMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.8 });
 
             // Ладонь (нормального размера)
             const palm = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.1, 0.4), skinMat);
             palm.castShadow = true;
-            handGroup.add(palm);
+            pivot.add(palm);
 
             // Пальцы
             for(let i=0; i<4; i++) {
                 const finger = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.06, 0.2), skinMat);
                 finger.position.set(-0.1 + i*0.07, 0, -0.3);
                 finger.castShadow = true;
-                handGroup.add(finger);
+                pivot.add(finger);
             }
             // Большой палец
             const thumb = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.06, 0.2), skinMat);
             thumb.position.set(-0.2, 0, -0.1);
             thumb.rotation.y = Math.PI/4;
             thumb.castShadow = true;
-            handGroup.add(thumb);
+            pivot.add(thumb);
 
             // Рукав пиджака
             const sleeve = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.22, 0.8, 16), suitMat);
             sleeve.position.set(0, 0, 0.5); // Рукав больше не отрендерен слишком далеко позади камеры
             sleeve.rotation.x = Math.PI/2;
             sleeve.castShadow = true;
-            handGroup.add(sleeve);
+            pivot.add(sleeve);
             
             // Наклон руки вниз
-            handGroup.rotation.x = -0.2;
-            handGroup.rotation.y = -0.3;
+            pivot.rotation.x = -0.2;
+            pivot.rotation.y = -0.3;
+
+            // Масштабируем pivot, а не сам handGroup, чтобы не ломать логику перемещений и сохранить видимый размер
+            const FACTOR = 0.2;
+            const s = 1.28 * FACTOR;
+            pivot.scale.set(s, s, s);
+            handGroup.add(pivot);
         }
 
         // === СИСТЕМА ЗАКЛЮЧЕННЫХ ===
